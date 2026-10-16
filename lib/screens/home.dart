@@ -98,7 +98,18 @@ class _HomeState extends State<Home> {
       ),
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [_addBar(), _buildBottomNav()],
+        children: [
+          _addBar(),
+          CurvedNavBar(
+            index: _navIndex,
+            icons: const [
+              Icons.calendar_today_outlined,
+              Icons.format_list_bulleted,
+              Icons.settings_outlined,
+            ],
+            onTap: (i) => setState(() => _navIndex = i),
+          ),
+        ],
       ),
     );
   }
@@ -154,7 +165,7 @@ class _HomeState extends State<Home> {
         decoration: const InputDecoration(
           icon: Icon(Icons.search, color: tdGrey, size: 20),
           border: InputBorder.none,
-          hintText: 'Cari rencana...',
+          hintText: 'Cari Rencana...',
           hintStyle: TextStyle(color: tdGrey),
         ),
       ),
@@ -194,7 +205,7 @@ class _HomeState extends State<Home> {
                 style: const TextStyle(color: tdText),
                 onSubmitted: _addToDoItem,
                 decoration: const InputDecoration(
-                  hintText: 'Tambahkan rencana baru...',
+                  hintText: 'Buat rencana baru...',
                   hintStyle: TextStyle(color: tdGrey),
                   border: InputBorder.none,
                 ),
@@ -221,39 +232,138 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+}
 
-  Widget _buildBottomNav() {
-    const icons = [
-      Icons.calendar_today_outlined,
-      Icons.format_list_bulleted,
-      Icons.settings_outlined,
-    ];
-    return Container(
-      padding: const EdgeInsets.only(top: 10, bottom: 18),
-      decoration: BoxDecoration(
-        color: tdCard,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(color: tdBlue.withOpacity(0.2), blurRadius: 18),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(icons.length, (i) {
-          final selected = _navIndex == i;
-          return IconButton(
-            onPressed: () => setState(() => _navIndex = i),
-            icon: Icon(
-              icons[i],
-              size: 28,
-              color: selected ? tdBlue : tdGrey,
-              shadows: selected
-                  ? [Shadow(color: tdBlue.withOpacity(0.9), blurRadius: 14)]
-                  : null,
-            ),
+/// Navigasi bawah melengkung dengan bubble yang bergeser ke item aktif.
+class CurvedNavBar extends StatelessWidget {
+  final int index;
+  final List<IconData> icons;
+  final ValueChanged<int> onTap;
+
+  const CurvedNavBar({
+    super.key,
+    required this.index,
+    required this.icons,
+    required this.onTap,
+  });
+
+  static const double _topY = 26; // tinggi area bubble di atas bar
+  static const double _height = 82;
+  static const double _bubble = 54;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: _height,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final itemW = width / icons.length;
+
+          return TweenAnimationBuilder<double>(
+            tween: Tween<double>(end: index.toDouble()),
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOutCubic,
+            builder: (context, pos, _) {
+              final cx = (pos + 0.5) * itemW;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Bar dengan lekukan
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _NavPainter(cx: cx, topY: _topY),
+                    ),
+                  ),
+                  // Ikon yang tidak aktif
+                  Positioned.fill(
+                    top: _topY,
+                    child: Row(
+                      children: List.generate(icons.length, (i) {
+                        final selected = i == index;
+                        return Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => onTap(i),
+                            child: Center(
+                              child: AnimatedOpacity(
+                                duration: const Duration(milliseconds: 200),
+                                opacity: selected ? 0 : 1,
+                                child: Icon(icons[i], color: tdGrey, size: 26),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                  // Bubble aktif
+                  Positioned(
+                    left: cx - _bubble / 2,
+                    top: 0,
+                    child: IgnorePointer(
+                      child: Container(
+                        width: _bubble,
+                        height: _bubble,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: tdBlue,
+                          boxShadow: [
+                            BoxShadow(
+                              color: tdBlue.withOpacity(0.6),
+                              blurRadius: 16,
+                            ),
+                          ],
+                        ),
+                        child: Icon(icons[index], color: Colors.white, size: 26),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           );
-        }),
+        },
       ),
     );
   }
+}
+
+class _NavPainter extends CustomPainter {
+  final double cx;
+  final double topY;
+
+  _NavPainter({required this.cx, required this.topY});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const half = 46.0; // lebar lekukan
+    const depth = 36.0; // kedalaman lekukan
+    final rl = (cx - half).clamp(0.0, 22.0);
+    final rr = (size.width - cx - half).clamp(0.0, 22.0);
+
+    final path = Path()
+      ..moveTo(0, topY + rl)
+      ..quadraticBezierTo(0, topY, rl, topY)
+      ..lineTo(cx - half, topY)
+      ..cubicTo(cx - 28, topY, cx - 34, topY + depth, cx, topY + depth)
+      ..cubicTo(cx + 34, topY + depth, cx + 28, topY, cx + half, topY)
+      ..lineTo(size.width - rr, topY)
+      ..quadraticBezierTo(size.width, topY, size.width, topY + rr)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+
+    // glow biru tipis di tepi atas
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = tdBlue.withOpacity(0.25)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
+    );
+    canvas.drawPath(path, Paint()..color = tdCard);
+  }
+
+  @override
+  bool shouldRepaint(covariant _NavPainter old) => old.cx != cx;
 }
