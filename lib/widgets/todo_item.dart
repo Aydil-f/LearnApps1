@@ -1,90 +1,57 @@
 import 'package:flutter/material.dart';
-import '../model/todo.dart';
 import '../constants/colors.dart';
+import '../model/todo.dart';
 
 class ToDoItem extends StatelessWidget {
   final ToDo todo;
-  final Function(ToDo) onToDoChanged;
-  final Function(String) onDeleteItem;
+  final IconData icon;
+  final void Function(ToDo todo) onToDoChanged;
+  final void Function(String id) onDeleteItem;
 
   const ToDoItem({
-    Key? key,
+    super.key,
     required this.todo,
+    required this.icon,
     required this.onToDoChanged,
     required this.onDeleteItem,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final done = todo.isDone;
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: tdCardDark,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: todo.isDone
-              ? tdGlowBlue.withOpacity(0.3)
-              : Colors.white.withOpacity(0.06),
-          width: 1.2,
-        ),
-        boxShadow: [
-          // Efek Glow Halus di Sekeliling Kartu
-          BoxShadow(
-            color: todo.isDone
-                ? tdGlowBlue.withOpacity(0.15)
-                : Colors.black.withOpacity(0.3),
-            blurRadius: 16,
-            spreadRadius: 0,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: done
+            ? [BoxShadow(color: tdBlue.withOpacity(0.25), blurRadius: 14)]
+            : [],
       ),
       child: ListTile(
         onTap: () => onToDoChanged(todo),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        leading: Container(
-          width: 26,
-          height: 26,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: todo.isDone ? tdGlowBlue : tdTextMuted,
-              width: 1.8,
-            ),
-            boxShadow: todo.isDone
-                ? [
-                    BoxShadow(
-                      color: tdGlowBlue.withOpacity(0.6),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                    )
-                  ]
-                : [],
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: done ? tdBlue.withOpacity(0.6) : Colors.white10,
           ),
-          child: todo.isDone
-              ? const Icon(
-                  Icons.check_rounded,
-                  size: 16,
-                  color: tdGlowBlue,
-                )
-              : null,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+        tileColor: tdCard,
+        leading: Icon(
+          done ? Icons.check_circle : icon,
+          color: done ? tdBlue : tdGrey,
         ),
         title: Text(
-          todo.todoText!,
+          todo.todoText ?? '',
           style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            color: todo.isDone ? tdTextMuted : tdTextLight,
-            decoration: todo.isDone ? TextDecoration.lineThrough : null,
-            decorationColor: tdTextMuted,
+            fontSize: 16,
+            color: done ? tdGrey : tdText,
+            decoration: done ? TextDecoration.lineThrough : null,
           ),
         ),
         trailing: IconButton(
-          icon: const Icon(Icons.close_rounded, size: 20),
-          color: tdTextMuted.withOpacity(0.6),
+          icon: const Icon(Icons.close, size: 20),
+          color: tdGrey,
           onPressed: () => onDeleteItem(todo.id!),
         ),
       ),

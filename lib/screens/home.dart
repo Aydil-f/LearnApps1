@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
-import '../model/todo.dart';
 import '../constants/colors.dart';
+import '../model/todo.dart';
 import '../widgets/todo_item.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+  const Home({super.key});
 
   @override
   State<Home> createState() => _HomeState();
@@ -16,229 +14,35 @@ class _HomeState extends State<Home> {
   final todosList = ToDo.todoList();
   List<ToDo> _foundToDo = [];
   final _todoController = TextEditingController();
+  int _navIndex = 1;
+
+  static const _icons = [
+    Icons.format_list_bulleted,
+    Icons.chat_bubble_outline,
+    Icons.access_time,
+    Icons.radio_button_unchecked,
+  ];
 
   @override
   void initState() {
-    _foundToDo = todosList;
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
-    );
+    _foundToDo = List.from(todosList);
     super.initState();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: tdBgDark,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 28),
-                  _buildSearchBox(),
-                  const SizedBox(height: 32),
-                  const Text(
-                    'Daftar Rencana',
-                    style: TextStyle(
-                      color: tdTextMuted,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: ListView(
-                      physics: const BouncingScrollPhysics(),
-                      children: [
-                        for (ToDo todo in _foundToDo.reversed)
-                          ToDoItem(
-                            todo: todo,
-                            onToDoChanged: _handleToDoChange,
-                            onDeleteItem: _deleteToDoItem,
-                          ),
-                        const SizedBox(height: 90),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ),
-            _buildBottomBarInput(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Header Teks dengan Pendaran Biru Halus
-          ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [Colors.white, tdGlowBlue],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ).createShader(bounds),
-            child: const Text(
-              'Team 1 - To Do List Apps',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 2.0,
-              ),
-            ),
-          ),
-          Container(
-            height: 40,
-            width: 40,
-            decoration: BoxDecoration(
-              color: tdCardDark,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.08)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.4),
-                  blurRadius: 10,
-                ),
-              ],
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: const Icon(Icons.settings_outlined, color: tdTextLight, size: 20),
-              onPressed: () {},
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBox() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      decoration: BoxDecoration(
-        color: tdCardDark,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withOpacity(0.06)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: TextField(
-        onChanged: (value) => _runFilter(value),
-        style: const TextStyle(color: tdTextLight, fontSize: 14),
-        decoration: const InputDecoration(
-          contentPadding: EdgeInsets.symmetric(vertical: 16),
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: tdTextMuted,
-            size: 20,
-          ),
-          prefixIconConstraints: BoxConstraints(
-            maxHeight: 20,
-            minWidth: 36,
-          ),
-          border: InputBorder.none,
-          hintText: 'Cari Rencana...',
-          hintStyle: TextStyle(color: tdTextMuted, fontSize: 14),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomBarInput() {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        decoration: BoxDecoration(
-          color: tdBgDark.withOpacity(0.95),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.5),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                decoration: BoxDecoration(
-                  color: tdCardDark,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.08)),
-                ),
-                child: TextField(
-                  controller: _todoController,
-                  style: const TextStyle(color: tdTextLight, fontSize: 14),
-                  decoration: const InputDecoration(
-                    hintText: 'Buat Rencana Baru...',
-                    hintStyle: TextStyle(color: tdTextMuted, fontSize: 14),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            GestureDetector(
-              onTap: () => _addToDoItem(_todoController.text),
-              child: Container(
-                height: 52,
-                width: 52,
-                decoration: BoxDecoration(
-                  color: tdGlowBlue,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: tdGlowBlue.withOpacity(0.45),
-                      blurRadius: 14,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.add_rounded,
-                  color: Colors.white,
-                  size: 26,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void dispose() {
+    _todoController.dispose();
+    super.dispose();
   }
 
   void _handleToDoChange(ToDo todo) {
-    setState(() {
-      todo.isDone = !todo.isDone;
-    });
+    setState(() => todo.isDone = !todo.isDone);
   }
 
   void _deleteToDoItem(String id) {
     setState(() {
       todosList.removeWhere((item) => item.id == id);
-      _foundToDo = List.from(todosList);
+      _foundToDo.removeWhere((item) => item.id == id);
     });
   }
 
@@ -255,7 +59,7 @@ class _HomeState extends State<Home> {
   }
 
   void _runFilter(String enteredKeyword) {
-    List<ToDo> results = [];
+    List<ToDo> results;
     if (enteredKeyword.isEmpty) {
       results = todosList;
     } else {
@@ -265,9 +69,191 @@ class _HomeState extends State<Home> {
               .contains(enteredKeyword.toLowerCase()))
           .toList();
     }
+    setState(() => _foundToDo = List.from(results));
+  }
 
-    setState(() {
-      _foundToDo = results;
-    });
+  @override
+  Widget build(BuildContext context) {
+    final active = _foundToDo.where((t) => !t.isDone).toList();
+    final finished = _foundToDo.where((t) => t.isDone).toList();
+
+    return Scaffold(
+      backgroundColor: tdBg,
+      body: Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              children: [
+                _searchBox(),
+                _sectionTitle("Fokus Hari Ini"),
+                for (final t in active) _item(t),
+                if (finished.isNotEmpty) _sectionTitle('Selesai'),
+                for (final t in finished) _item(t),
+              ],
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [_addBar(), _buildBottomNav()],
+      ),
+    );
+  }
+
+  Widget _item(ToDo t) {
+    final idx = todosList.indexOf(t) % _icons.length;
+    return ToDoItem(
+      todo: t,
+      icon: _icons[idx],
+      onToDoChanged: _handleToDoChange,
+      onDeleteItem: _deleteToDoItem,
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(24, 70, 24, 34),
+      decoration: BoxDecoration(
+        color: tdCard,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(36)),
+        boxShadow: [
+          BoxShadow(
+            color: tdBlue.withOpacity(0.35),
+            blurRadius: 24,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: const Text(
+        'Team 1 Apps',
+        style: TextStyle(
+          color: tdText,
+          fontSize: 28,
+          fontWeight: FontWeight.w300,
+          letterSpacing: 1.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _searchBox() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: tdCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: TextField(
+        onChanged: _runFilter,
+        style: const TextStyle(color: tdText),
+        decoration: const InputDecoration(
+          icon: Icon(Icons.search, color: tdGrey, size: 20),
+          border: InputBorder.none,
+          hintText: 'Cari rencana...',
+          hintStyle: TextStyle(color: tdGrey),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 26, bottom: 14),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: tdGrey,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _addBar() {
+    return Container(
+      color: tdBg,
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              decoration: BoxDecoration(
+                color: tdCard,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.white10),
+              ),
+              child: TextField(
+                controller: _todoController,
+                style: const TextStyle(color: tdText),
+                onSubmitted: _addToDoItem,
+                decoration: const InputDecoration(
+                  hintText: 'Tambahkan rencana baru...',
+                  hintStyle: TextStyle(color: tdGrey),
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: () => _addToDoItem(_todoController.text),
+            child: Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: tdBlue,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(color: tdBlue.withOpacity(0.5), blurRadius: 14),
+                ],
+              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 28),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    const icons = [
+      Icons.calendar_today_outlined,
+      Icons.format_list_bulleted,
+      Icons.settings_outlined,
+    ];
+    return Container(
+      padding: const EdgeInsets.only(top: 10, bottom: 18),
+      decoration: BoxDecoration(
+        color: tdCard,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        boxShadow: [
+          BoxShadow(color: tdBlue.withOpacity(0.2), blurRadius: 18),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.generate(icons.length, (i) {
+          final selected = _navIndex == i;
+          return IconButton(
+            onPressed: () => setState(() => _navIndex = i),
+            icon: Icon(
+              icons[i],
+              size: 28,
+              color: selected ? tdBlue : tdGrey,
+              shadows: selected
+                  ? [Shadow(color: tdBlue.withOpacity(0.9), blurRadius: 14)]
+                  : null,
+            ),
+          );
+        }),
+      ),
+    );
   }
 }

@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_todoapps/screens/home.dart';
+import 'constants/colors.dart';
+import 'screens/home.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: Colors.transparent));
-    // TODO: implement build
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'ToDoApps',
-      home: Home(),
+      title: 'To Do List',
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: tdBg,
+        colorScheme: const ColorScheme.dark(primary: tdBlue),
+      ),
+      home: const Home(),
     );
   }
 }
